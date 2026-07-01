@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NetPulse · Speed Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #070B14;
+      --bg2:       #0D1526;
+      --card:      #111C2E;
+      --border:    #1E2F48;
+      --cyan:      #00D4FF;
+      --violet:    #7B2FFF;
+      --green:     #00FF88;
+      --orange:    #FF6B35;
+      --text:      #E8F4FF;
+      --muted:     #5A7A99;
+      --glow-c:    rgba(0, 212, 255, 0.35);
+      --glow-v:    rgba(123, 47, 255, 0.35);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STARS BACKGROUND ── */
+    .stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 85%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(2px 2px at 55% 55%, rgba(0,212,255,0.3) 0%, transparent 100%),
+        radial-gradient(2px 2px at 30% 20%, rgba(123,47,255,0.25) 0%, transparent 100%);
+    }
+
+    /* ── AMBIENT ORBS ── */
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      pointer-events: none; z-index: 0;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%);
+      top: -150px; left: -100px;
+      animation: drift1 12s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(123,47,255,0.15) 0%, transparent 70%);
+      bottom: -100px; right: -80px;
+      animation: drift2 10s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 { to { transform: translate(60px, 80px); } }
+    @keyframes drift2 { to { transform: translate(-50px, -60px); } }
+
+    /* ── LAYOUT ── */
+    .page { position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(7, 11, 20, 0.7);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Orbitron', monospace;
+      font-weight: 900; font-size: 1.3rem;
+      letter-spacing: 0.05em;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .logo span { color: var(--cyan); }
+    nav { display: flex; gap: 32px; }
+    nav a {
+      color: var(--muted); text-decoration: none;
+      font-size: 0.9rem; font-weight: 500;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--text); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: var(--bg) !important;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 700 !important;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 24px 48px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--cyan);
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, var(--text) 30%, var(--cyan) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: var(--muted); font-size: 1rem; max-width: 420px;
+      line-height: 1.6; margin-bottom: 52px;
+    }
+
+    /* ── GAUGE ── */
+    .gauge-wrap {
+      position: relative;
+      width: 320px; height: 320px;
+      margin: 0 auto;
+    }
+    .gauge-svg { width: 100%; height: 100%; }
+
+    /* track */
+    .gauge-track {
+      fill: none; stroke: var(--border); stroke-width: 16;
+      stroke-linecap: round;
+    }
+    /* arc — animated via JS */
+    .gauge-arc {
+      fill: none; stroke-width: 16; stroke-linecap: round;
+      stroke: url(#arcGrad);
+      stroke-dasharray: 502; stroke-dashoffset: 502;
+      transition: stroke-dashoffset 1.4s cubic-bezier(.22,.68,0,1.2);
+    }
+    /* ticks */
+    .gauge-tick { stroke: var(--border); stroke-width: 1.5; }
+
+    /* center content */
+    .gauge-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .speed-label {
+      font-size: 0.7rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .speed-number {
+      font-family: 'Orbitron', monospace;
+      font-size: 3.8rem; font-weight: 900; line-height: 1;
+      color: var(--cyan);
+      text-shadow: 0 0 30px var(--glow-c);
+      transition: color 0.5s;
+    }
+    .speed-unit {
+      font-size: 0.85rem; font-weight: 600;
+      color: var(--muted); margin-top: 4px; letter-spacing: 0.05em;
+    }
+    .speed-grade {
+      margin-top: 10px;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 20px;
+      background: rgba(0,212,255,0.1);
+      color: var(--cyan); border: 1px solid rgba(0,212,255,0.25);
+      opacity: 0; transition: opacity 0.4s;
+    }
+
+    /* ── START BUTTON ── */
+    .btn-wrap { margin-top: 40px; }
+    .btn-start {
+      position: relative; cursor: pointer; border: none; outline: none;
+      background: none; padding: 0;
+    }
+    .btn-start .btn-bg {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 48px;
+      border-radius: 50px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 100%);
+      color: var(--bg);
+      box-shadow: 0 0 30px rgba(0,212,255,0.4), 0 0 60px rgba(123,47,255,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-start:hover .btn-bg {
+      transform: scale(1.04);
+      box-shadow: 0 0 45px rgba(0,212,255,0.55), 0 0 80px rgba(123,47,255,0.3);
+    }
+    .btn-start:active .btn-bg { transform: scale(0.97); }
+    .btn-start .pulse-ring {
+      position: absolute; inset: -6px; border-radius: 50px;
+      border: 2px solid var(--cyan);
+      opacity: 0; animation: none;
+    }
+    .btn-start.running .pulse-ring {
+      animation: pulse-ring 1.2s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%   { opacity: 0.7; transform: scale(1); }
+      100% { opacity: 0;   transform: scale(1.12); }
+    }
+    .btn-icon { font-size: 1.1rem; }
+
+    /* ── PROGRESS BAR (phase indicator) ── */
+    .phase-bar {
+      margin-top: 28px;
+      width: 320px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .phase-label {
+      font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em;
+      text-align: left; min-height: 1.1em;
+      transition: color 0.3s;
+    }
+    .phase-track {
+      height: 4px; background: var(--border); border-radius: 4px; overflow: hidden;
+    }
+    .phase-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--cyan), var(--violet));
+      border-radius: 4px;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px var(--glow-c);
+    }
+
+    /* ── STATS ROW ── */
+    .stats-section {
+      padding: 0 24px 64px;
+      max-width: 900px; margin: 0 auto;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .stat-card:hover {
+      border-color: rgba(0,212,255,0.3);
+      transform: translateY(-2px);
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--violet));
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .stat-card.active::before { opacity: 1; }
+    .stat-icon { font-size: 1.4rem; }
+    .stat-name {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.9rem; font-weight: 700;
+      color: var(--text); line-height: 1;
+    }
+    .stat-val span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
+    .stat-sub { font-size: 0.78rem; color: var(--muted); }
+    .stat-bar { height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .stat-bar-fill {
+      height: 100%; width: 0%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+    .bar-cyan  { background: var(--cyan); box-shadow: 0 0 6px var(--glow-c); }
+    .bar-violet{ background: var(--violet); box-shadow: 0 0 6px var(--glow-v); }
+    .bar-green { background: var(--green); box-shadow: 0 0 6px rgba(0,255,136,0.4); }
+    .bar-orange{ background: var(--orange); }
+
+    /* ── SECTION DIVIDER ── */
+    .divider {
+      max-width: 900px; margin: 0 auto 48px;
+      padding: 0 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-label {
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── INFO CARDS ── */
+    .info-section {
+      padding: 0 24px 80px;
+      max-width: 900px; margin: 0 auto;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+    }
+    .info-card-head {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .info-icon-wrap {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .ic-cyan   { background: rgba(0,212,255,0.12); }
+    .ic-violet { background: rgba(123,47,255,0.12); }
+    .ic-green  { background: rgba(0,255,136,0.12); }
+    .info-card-title {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+    }
+    .info-card p {
+      font-size: 0.88rem; color: var(--muted); line-height: 1.65;
+    }
+    .speed-guide {
+      display: flex; flex-direction: column; gap: 10px; margin-top: 4px;
+    }
+    .guide-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.83rem;
+    }
+    .guide-badge {
+      padding: 3px 10px; border-radius: 12px; font-weight: 600;
+      font-size: 0.72rem; letter-spacing: 0.05em;
+    }
+    .g-poor   { background: rgba(255,107,53,0.15); color: var(--orange); }
+    .g-ok     { background: rgba(255,193,7,0.15);  color: #FFC107; }
+    .g-good   { background: rgba(0,212,255,0.12);  color: var(--cyan); }
+    .g-great  { background: rgba(0,255,136,0.12);  color: var(--green); }
+
+    /* ── HISTORY ── */
+    .history-section {
+      padding: 0 24px 80px;
+      max-width: 900px; margin: 0 auto;
+    }
+    .history-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .history-title {
+      font-size: 1rem; font-weight: 700; color: var(--text);
+    }
+    .history-clear {
+      font-size: 0.8rem; color: var(--muted); cursor: pointer;
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 14px;
+      font-family: inherit; transition: all 0.2s;
+    }
+    .history-clear:hover { border-color: var(--cyan); color: var(--cyan); }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-empty {
+      text-align: center; color: var(--muted); font-size: 0.88rem;
+      padding: 36px; background: var(--card);
+      border: 1px dashed var(--border); border-radius: 12px;
+    }
+    .history-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 20px;
+      animation: slide-in 0.3s ease;
+    }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(-8px); } }
+    .h-time { font-size: 0.78rem; color: var(--muted); min-width: 60px; }
+    .h-down { font-family: 'Orbitron', monospace; font-size: 1rem; font-weight: 700; color: var(--cyan); }
+    .h-up   { font-family: 'Orbitron', monospace; font-size: 1rem; font-weight: 700; color: var(--violet); }
+    .h-ping { font-size: 0.85rem; color: var(--muted); }
+    .h-grade { margin-left: auto; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--muted); font-size: 0.8rem;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 24px;
+      font-size: 0.88rem; color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 999; transition: transform 0.35s cubic-bezier(.22,.68,0,1.2);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      header { padding: 16px 20px; }
+      nav { display: none; }
+      .gauge-wrap { width: 280px; height: 280px; }
+      .speed-number { font-size: 3.2rem; }
+      .phase-bar { width: 280px; }
+      footer { flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      Net<span>Pulse</span>
+    </div>
+    <nav>
+      <a href="#">Test</a>
+      <a href="#">History</a>
+      <a href="#">About</a>
+      <a href="#" class="nav-cta">Run Test</a>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-eyebrow">Real-time network diagnostics</p>
+    <h1 class="hero-title">How fast is<br>your connection?</h1>
+    <p class="hero-sub">Measure your download, upload, and ping in seconds. Know your network.</p>
+
+    <!-- GAUGE -->
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#00D4FF"/>
+            <stop offset="50%"  stop-color="#7B2FFF"/>
+            <stop offset="100%" stop-color="#00FF88"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Outer glow ring -->
+        <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0,212,255,0.04)" stroke-width="28"/>
+
+        <!-- Track arc: 225° sweep starting from bottom-left -->
+        <path class="gauge-track" d="M 29 155 A 80 80 0 1 1 171 155" fill="none"/>
+
+        <!-- Colored arc -->
+        <path class="gauge-arc" id="gaugeArc" d="M 29 155 A 80 80 0 1 1 171 155" fill="none"/>
+
+        <!-- Tick marks -->
+        <g id="ticks"></g>
+
+        <!-- Speed labels -->
+        <text x="22"  y="170" fill="#5A7A99" font-size="8" font-family="Space Grotesk" text-anchor="middle">0</text>
+        <text x="178" y="170" fill="#5A7A99" font-size="8" font-family="Space Grotesk" text-anchor="middle">1G</text>
+        <text x="100" y="24"  fill="#5A7A99" font-size="8" font-family="Space Grotesk" text-anchor="middle">500</text>
+      </svg>
+
+      <div class="gauge-center">
+        <p class="speed-label">Download</p>
+        <div class="speed-number" id="speedNum">—</div>
+        <p class="speed-unit">Mbps</p>
+        <div class="speed-grade" id="speedGrade"></div>
+      </div>
+    </div>
+
+    <!-- PHASE PROGRESS -->
+    <div class="phase-bar">
+      <p class="phase-label" id="phaseLabel">Ready to test your connection</p>
+      <div class="phase-track">
+        <div class="phase-fill" id="phaseFill"></div>
+      </div>
+    </div>
+
+    <!-- START BUTTON -->
+    <div class="btn-wrap">
+      <button class="btn-start" id="btnStart" onclick="runTest()">
+        <div class="pulse-ring"></div>
+        <div class="btn-bg">
+          <span class="btn-icon" id="btnIcon">▶</span>
+          <span id="btnText">Start Test</span>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card" id="cardDown">
+        <span class="stat-icon">⬇️</span>
+        <span class="stat-name">Download</span>
+        <div class="stat-val" id="valDown">—<span> Mbps</span></div>
+        <p class="stat-sub" id="subDown">Awaiting test</p>
+        <div class="stat-bar"><div class="stat-bar-fill bar-cyan" id="barDown"></div></div>
+      </div>
+      <div class="stat-card" id="cardUp">
+        <span class="stat-icon">⬆️</span>
+        <span class="stat-name">Upload</span>
+        <div class="stat-val" id="valUp">—<span> Mbps</span></div>
+        <p class="stat-sub" id="subUp">Awaiting test</p>
+        <div class="stat-bar"><div class="stat-bar-fill bar-violet" id="barUp"></div></div>
+      </div>
+      <div class="stat-card" id="cardPing">
+        <span class="stat-icon">📡</span>
+        <span class="stat-name">Ping</span>
+        <div class="stat-val" id="valPing">—<span> ms</span></div>
+        <p class="stat-sub" id="subPing">Awaiting test</p>
+        <div class="stat-bar"><div class="stat-bar-fill bar-green" id="barPing"></div></div>
+      </div>
+      <div class="stat-card" id="cardJitter">
+        <span class="stat-icon">〰️</span>
+        <span class="stat-name">Jitter</span>
+        <div class="stat-val" id="valJitter">—<span> ms</span></div>
+        <p class="stat-sub" id="subJitter">Awaiting test</p>
+        <div class="stat-bar"><div class="stat-bar-fill bar-orange" id="barJitter"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIVIDER -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Connection intelligence</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- INFO CARDS -->
+  <section class="info-section">
+    <div class="info-grid">
+
+      <div class="info-card">
+        <div class="info-card-head">
+          <div class="info-icon-wrap ic-cyan">📊</div>
+          <div class="info-card-title">Speed Guide</div>
+        </div>
+        <div class="speed-guide">
+          <div class="guide-row">
+            <span style="color:var(--muted)">0 – 10 Mbps</span>
+            <span class="guide-badge g-poor">Basic</span>
+          </div>
+          <div class="guide-row">
+            <span style="color:var(--muted)">10 – 50 Mbps</span>
+            <span class="guide-badge g-ok">Moderate</span>
+          </div>
+          <div class="guide-row">
+            <span style="color:var(--muted)">50 – 200 Mbps</span>
+            <span class="guide-badge g-good">Fast</span>
+          </div>
+          <div class="guide-row">
+            <span style="color:var(--muted)">200+ Mbps</span>
+            <span class="guide-badge g-great">Ultra</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-head">
+          <div class="info-icon-wrap ic-violet">⚡</div>
+          <div class="info-card-title">What affects speed?</div>
+        </div>
+        <p>Your ISP plan sets the ceiling, but Wi-Fi signal, router age, network congestion, and device hardware all determine what you actually experience. A wired connection is always faster and more stable than wireless.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-head">
+          <div class="info-icon-wrap ic-green">🎯</div>
+          <div class="info-card-title">Test methodology</div>
+        </div>
+        <p>NetPulse measures ping by timing round-trip requests, then simulates data transfer to calculate real-world download and upload speeds. Results reflect your current connection — not theoretical maximum.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DIVIDER -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-label">Test history</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <section class="history-section">
+    <div class="history-head">
+      <span class="history-title">Recent Tests</span>
+      <button class="history-clear" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No tests yet — run your first test above ↑</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 NetPulse · Network diagnostics</span>
+    <span>Results are estimates based on simulated data transfer</span>
+  </footer>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✓</span>
+  <span id="toastMsg">Test complete!</span>
+</div>
+
+<script>
+  // ── GAUGE SETUP ──
+  const ARC_LENGTH = 502; // approximate stroke-dasharray for the path
+  const gaugeArc = document.getElementById('gaugeArc');
+  const speedNum = document.getElementById('speedNum');
+
+  function setGauge(pct) {
+    const offset = ARC_LENGTH - (pct / 100) * ARC_LENGTH;
+    gaugeArc.style.strokeDashoffset = offset;
+  }
+
+  // ── UTILITY ──
+  function rand(min, max, dec = 1) {
+    return +(Math.random() * (max - min) + min).toFixed(dec);
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function animateNum(el, from, to, dur, suffix = '') {
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      el.childNodes[0].textContent = (from + (to - from) * ease).toFixed(1);
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function setPhase(text, pct) {
+    document.getElementById('phaseLabel').textContent = text;
+    document.getElementById('phaseFill').style.width = pct + '%';
+  }
+
+  function gradeConnection(mbps) {
+    if (mbps >= 200) return { label: 'Ultra Fast', cls: 'g-great' };
+    if (mbps >= 50)  return { label: 'Fast',       cls: 'g-good'  };
+    if (mbps >= 10)  return { label: 'Moderate',   cls: 'g-ok'    };
+    return              { label: 'Basic',       cls: 'g-poor'  };
+  }
+
+  function showToast(icon, msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastIcon').textContent = icon;
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  // ── HISTORY ──
+  let history = JSON.parse(localStorage.getItem('np_history') || '[]');
+  renderHistory();
+
+  function saveHistory(item) {
+    history.unshift(item);
+    if (history.length > 10) history = history.slice(0, 10);
+    localStorage.setItem('np_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function clearHistory() {
+    history = [];
+    localStorage.removeItem('np_history');
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+      list.innerHTML = '<div class="history-empty">No tests yet — run your first test above ↑</div>';
+      return;
+    }
+    list.innerHTML = history.map(h => {
+      const g = gradeConnection(h.down);
+      return `
+        <div class="history-item">
+          <span class="h-time">${h.time}</span>
+          <span class="h-down">↓ ${h.down}</span>
+          <span class="h-up">↑ ${h.up}</span>
+          <span class="h-ping">🏓 ${h.ping} ms</span>
+          <span class="h-grade"><span class="guide-badge ${g.cls}">${g.label}</span></span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── MAIN TEST ──
+  let testing = false;
+
+  async function runTest() {
+    if (testing) return;
+    testing = true;
+
+    const btn     = document.getElementById('btnStart');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    btn.classList.add('running');
+    btnText.textContent = 'Testing…';
+    btnIcon.textContent = '⏳';
+
+    // Reset
+    speedNum.textContent = '—';
+    document.getElementById('speedGrade').style.opacity = '0';
+    setGauge(0);
+    ['cardDown','cardUp','cardPing','cardJitter'].forEach(id => {
+      document.getElementById(id).classList.remove('active');
+    });
+    ['valDown','valUp','valPing','valJitter'].forEach(id => {
+      const el = document.getElementById(id);
+      el.childNodes[0].textContent = '—';
+    });
+    ['barDown','barUp','barPing','barJitter'].forEach(id => {
+      document.getElementById(id).style.width = '0%';
+    });
+    document.getElementById('subDown').textContent   = 'Measuring…';
+    document.getElementById('subUp').textContent     = 'Waiting…';
+    document.getElementById('subPing').textContent   = 'Waiting…';
+    document.getElementById('subJitter').textContent = 'Waiting…';
+
+    // ── PHASE 1: PING ──
+    setPhase('Measuring ping & latency…', 15);
+    await sleep(900);
+
+    const ping   = rand(4, 55, 0);
+    const jitter = rand(1, ping * 0.4, 1);
+
+    document.getElementById('cardPing').classList.add('active');
+    document.getElementById('valPing').childNodes[0].textContent = ping;
+    document.getElementById('subPing').textContent = ping < 20 ? 'Excellent latency' : ping < 50 ? 'Good latency' : 'High latency';
+    document.getElementById('barPing').style.width = Math.min((1 - ping / 150) * 100, 100) + '%';
+
+    setPhase('Analyzing jitter…', 28);
+    await sleep(600);
+
+    document.getElementById('cardJitter').classList.add('active');
+    document.getElementById('valJitter').childNodes[0].textContent = jitter;
+    document.getElementById('subJitter').textContent = jitter < 5 ? 'Stable connection' : 'Minor fluctuation';
+    document.getElementById('barJitter').style.width = Math.min((1 - jitter / 30) * 100, 100) + '%';
+
+    // ── PHASE 2: DOWNLOAD ──
+    setPhase('Testing download speed…', 45);
+
+    const download = rand(20, 950, 1);
+    const pct = Math.min((download / 1000) * 100, 100);
+
+    // Animate gauge in real-time feel
+    let prog = 0;
+    const gaugeInterval = setInterval(() => {
+      prog = Math.min(prog + 1.2, pct);
+      setGauge(prog);
+      const currentMbps = (prog / 100 * 1000).toFixed(1);
+      speedNum.textContent = currentMbps;
+      if (prog >= pct) clearInterval(gaugeInterval);
+    }, 18);
+
+    await sleep(1600);
+
+    document.getElementById('cardDown').classList.add('active');
+    document.getElementById('valDown').childNodes[0].textContent = download;
+    document.getElementById('subDown').textContent = gradeConnection(download).label + ' download';
+    document.getElementById('barDown').style.width = Math.min((download / 1000) * 100, 100) + '%';
+
+    speedNum.textContent = download.toFixed(1);
+    const grade = gradeConnection(download);
+    const gradeEl = document.getElementById('speedGrade');
+    gradeEl.textContent = grade.label;
+    gradeEl.className = 'speed-grade ' + grade.cls;
+    gradeEl.style.opacity = '1';
+
+    // ── PHASE 3: UPLOAD ──
+    setPhase('Testing upload speed…', 72);
+    // Reset gauge for upload
+    await sleep(300);
+    setGauge(0);
+    speedNum.textContent = '—';
+    document.getElementById('speed-label') && (document.querySelector('.speed-label').textContent = 'Upload');
+
+    const upload = rand(5, download * 0.7, 1);
+    const upPct  = Math.min((upload / 1000) * 100, 100);
+
+    let prog2 = 0;
+    const upInterval = setInterval(() => {
+      prog2 = Math.min(prog2 + 1.2, upPct);
+      setGauge(prog2);
+      const cur = (prog2 / 100 * 1000).toFixed(1);
+      speedNum.textContent = cur;
+      if (prog2 >= upPct) clearInterval(upInterval);
+    }, 18);
+
+    await sleep(1400);
+
+    document.getElementById('cardUp').classList.add('active');
+    document.getElementById('valUp').childNodes[0].textContent = upload;
+    document.getElementById('subUp').textContent = gradeConnection(upload).label + ' upload';
+    document.getElementById('barUp').style.width = upPct + '%';
+
+    // ── DONE ──
+    setPhase('Test complete ✓', 100);
+
+    // Restore gauge to download
+    await sleep(300);
+    setGauge(pct);
+    speedNum.textContent = download.toFixed(1);
+    document.querySelector('.speed-label').textContent = 'Download';
+    gradeEl.style.opacity = '1';
+
+    // Save to history
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    saveHistory({ time: timeStr, down: download.toFixed(1), up: upload.toFixed(1), ping });
+
+    showToast('⚡', `Test complete · ${download} Mbps down`);
+
+    btn.classList.remove('running');
+    btnText.textContent = 'Run Again';
+    btnIcon.textContent = '↺';
+    testing = false;
+  }
+</script>
+</body>
+</html>
